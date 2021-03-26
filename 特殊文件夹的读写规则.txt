@@ -1,0 +1,14 @@
+1. StreamingAssets 文件夹
+   读：移动端(ios\android)运行时只读，andriod只能使用www读(apk压缩问题)，ios(不确定)统一使用www读，pc随便使用什么读。
+   写：pc运行时可写入，其他平台不行。
+   
+2. PersistentData 文件夹
+   读：各个平台运行时都可读。由于这是个不压缩打包的文件夹，所以读取方法，应该可以使用www或者io(待验证)
+   写：使用io随便写。
+   
+3. 路径问题：
+   Application.StreamingAssetsPath 和 Application.PersistentDataPath 在各个平台都有自己的目录。(也许android自带jar:file://，因此可以验证下)
+   若使用io读，其实问题不大，指定即可；
+   若使用www来读，需要考虑file://和file:///什么时候需要加的问题。因此需要找机会验证。
+   
+   
