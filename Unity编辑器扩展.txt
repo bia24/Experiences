@@ -1,0 +1,32 @@
+1. 制作简单窗口编辑器
+public class T : EditorWindow
+{
+	[MenuItem("command_path")]   //唤出指令
+	public static void  Init() //初始化固定格式
+	{
+		T window=(T)EditorWindow.GetWindow(typeof(T));
+		window.Show();
+	}
+	
+	string path;
+	
+	OnGui(){    //排版
+		GUILayout.Space(10);    //空行
+        GUILayout.Label("16 bits must!!!!", EditorStyles.boldLabel);  //标签
+		
+		path = EditorGUILayout.TextField("path", path);   //开一个标签为“path"的文本框，将文本框中的值和path变量进行更新绑定
+		
+		if(GUILayout.Button("高度图文件选择",GUILayout.Width(100)))    //绘制一个按钮
+        {
+            path= EditorUtility.OpenFilePanel("选择一张高度图","","raw");   //展示一个文件打开选择窗口，最终决定路径传到path变量中。文件后缀为“raw”
+        }
+		
+		
+		if(GUILayout.Button("计算差值高度图",GUILayout.Width(100),GUILayout.Height(60)))
+        {
+            string savePath= EditorUtility.SaveFilePanel("路径保存", "", "DiffFile", "diff");     //展示一个文件存储选择窗口，最终决定路径传到savePth里。文件后缀为“diff”
+        }
+	}
+}
+
+

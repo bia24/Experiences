@@ -1,0 +1,8 @@
+使用ndk查看调用函数
+android-ndk-r10e\android-ndk-r10e\toolchains\arm-linux-androideabi-4.9\prebuilt\windows-x86_64\bin>
+arm-linux-androideabi-addr2line -f -e libunity.so 002de41
+
+
+
+adb从pc推文件到到手机
+adb push file_path /sdcard/test/

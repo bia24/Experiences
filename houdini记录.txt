@@ -1,0 +1,89 @@
+********常用节点：
+1.Geometry类。type choose polygon类型为几何体
+  Grid：创建一个平面
+  Tube：创建一个圆筒(可转变为锥)
+2.HeightField类
+  heightfield blur：平滑地形曲面
+  heightfield distort：对地形层进行扰动 height/mask
+  heightfield maskbyfeature：按照地形特点生成遮罩
+  heightfield slump：以height为地基，以mask遮罩的部分为需要进行模拟的部位。产生一个模拟滑落堆积的新mask层-flow层。
+  heightfiled tilesplit：将大地图分块，用来做pdg
+  convert heightfield：将heightfield结点中的2D值(height、mask都是以2D volume形式存在)转变为polygon等值，之后就可以使用普通的节点操作，而不是只能使用hf系列及节点。
+  heightfield project：将一个3d geometry映射到heightfield结点上，生成一个高度图
+3.属性类
+  Atrribute Create：给顶点增加属性
+  Atrribute Randomize：给属性设置随机值
+  Attribute wrangle：使用vex修改顶点属性值。(甚至可以新增属性)。所以基本能涵盖所有的属性节点功能。
+  Attribute Cast: 改变属性的精度
+3.SOP类(surface operation)表面操作节点
+  Edit：对表面/边/点进行位移或雕刻
+  Scatter: 在表面或图元(primitives，例如heightfield上)播撒上新的point点
+  Copy to Points：将输入1的几何体，复制到输入2的所有points上
+  Object Merge：功能强大的对象合并，可以指定在/obj层面中的任何对象，且数量没有限制
+  Merge：可在本操作层中，通过连线合并对象。
+  Switch：可以从多个上层对象中进行选择切换。
+4.功能类
+  ROP Geometry Output：能将一个sop或object对象输出为指定的文件。(可将“输出路径”和“save to Disk”按钮
+					   暴露给HDA，在Unity中就可进行操作)-保存
+  File 节点：能从磁盘上读取/写入geometry-可配合进行可视化pdg结果-·@pdg_output·					   
+					   
+					   
+5.TOP类(task operation)任务操作节点  
+  wedge：能产生不同属性的任务节点
+  filepattern：给定一个文件模式匹配路径，能将满足匹配的文件封装成一个workitem
+  hdaprocessor：使用workitem，将hda文件输出为指定格式文件的节点。
+
+*******vex常用
+@xxx：引用某个顶点属性中已存在的变量。(默认已经知道的有@pscale顶点缩放，@Cd顶点颜色)
+
+*******Tips：
+1. .bgeo和.geo格式文件是houdini存储geometry的格式。前者二进制，后者ascii
+
+2. topnet结点如何构建和使用：
+   hadprocessor节点是必须的(简称pro节点)
+   pro节点的前项节点，可以是属性改变节点，也可以是文件封装节点。pro节点从前项节点中获取到context，再结合指定
+   hda中暴露出的参数，最后通过hda的文件定义，输出bgeo文件。
+   
+   
+   
+   
+------------------------HoudiniEngine for Unity-----------------------------------
+
+1.session。hue有两种session可供选择。named pipe有名管道和tcp socket。
+  若开启houdini和unity的sync同步功能，则必须在houdini中开启监听，随后在unity中使用hue进行连接。
+  若不需要同步，则拖拽hda文件到场景中，会自动创建一个session，代码里是使用default session与houdini/bin下的HARS服务进行通信，实现使用houdini进行烘焙，并将结果传回
+2.houdini asset在unity中的呈现结构：
+  根节点：会挂载HEU_Houdini Asset Root 脚本，会暴露在houdini中暴露出的参数。有Generate(资源重载)和Bake(资源烘为go或者prefab)功能
+  HDA_Data节点：会挂载HEU_HoudiniAsset 脚本，这是最核心的脚本。其中含有该hda asset的烘焙和输出数据，可以说就是该脚本进行传输和串联的。*代码层面需要细读
+  generator节点：这是一个houdini烘焙完成后的输出节点。这上面挂载着的对象就是普通的unity对象，不含有任何HEU相关的内容。
+3.HEU_ENVPATH:
+  可在Assets目录下编写环境文件。目前个人认为这不是进行unity和houdini之间进行沟通的内容，而仅仅是为heu方面进行快捷使用的内容，在编写扩展脚本的时候应该能用上。
+4.Atrribute 和 Group：
+  Attribute：属性是houdini与unity之间进行封送数据的方式之一。由houdini传数据到unity，是通过houdini中添加attribute结点，并添加对应属性name实现的；todo：unity到houdini的传输需要看代码；
+  Group：group和属性功能是类似的，group可以实现lod和collider碰撞盒的设置
+  Attributes store功能：这个功能在使用自定义脚本的时候应该会蛮实用的。在attr结点中使用attributes store属性name，可以将指定的属性暴露出来：HEU会通过在generator结点上挂载一个HEU_Output Attributes store脚本实现。
+5.Handle：
+  这是一个小功能：HDA在parameter界面中可以设置的。结果就是，hda在导入unity后，可以有类似于transform：scale那种可拉伸的小gizmos.
+6.Input：
+  
+  以一个拖入场景的hda资源为关注点，实际上是将数据传给houdini进行烘焙，并将结果传回unity进行呈现。一起传入houdini的时候，除了hda本身的数据(hda像是一个类模板的概念)，还可以附加其他数据，
+  这就是Input的概念：指将unity中的其他数据，一起输入给houdini进行烘焙。
+  
+  实现方法：使用object merge这个sop节点，然后在hda上暴露出它的路径即可。这是最通用的方法！推荐。
+  
+  支持的类型：unity mesh，hda，Terrain
+  
+  原理：unity mesh ：输入的unity mesh，会在houdini的primitive attribute中添加一个属性unity_input_mesh_name，若有material，则再添加属性unity_material，如此实现闭环
+        hda：会自动创建merge节点，将各个hda先merge，再使用object merge来读取这个merge节点的内容
+
+  自定义输入脚本：HEU_InputUtility.cs 这个是总管的脚本。里面存有HEU_InputInterface集合。想要自定义输入的内容，只需要派生HEU_InputInterface.cs即可。
+
+7.实例化：
+  类型：一种是，在HDA内，使用geo节点配合copytoPoint节点进行实例化，也就是资源是hda内部的。这里只要注意copytoPoint里面勾选pack and instance，就能实现批处理。
+        另一种是，HDA使用unity中的资源，一般为unity的prefab了。这里面有两种方式，可以使用object merge指定input进来；也可以添加 unity_instance 属性，会自动暴露。*有待考究最合适的方式。貌似
+		使用objectmerge会好使一点。
+  注意：如果要设置其他法线旋转等，感觉要从属性入手。
+  使用场景：生成点云。
+8.Unity回调：
+  unity_script 属性可以实现在HDA烘焙时进行脚本挂载和调用指定脚本方法。
+
